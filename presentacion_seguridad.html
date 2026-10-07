@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seguridad IP · Uniguajira</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   DESIGN TOKENS — paleta institucional Uniguajira
+   ========================================================= */
+:root {
+  --teal:       #2CB1A8;
+  --teal-d:     #1E8C88;
+  --teal-deep:  #0F4D4C;
+  --teal-deep2: #176B69;
+  --coral:      #EF5B5B;
+  --coral-d:    #D14444;
+  --gold:       #EBA43C;
+  --gold-d:     #B97B1F;
+
+  --ink:        #0F2A2E;
+  --cream:      #F7F3E8;
+  --cream-2:    #EFE9D8;
+  --cream-3:    #E5DDC8;
+  --white:      #FFFFFF;
+
+  --muted-d:    #6B7280;
+  --muted-l:    #A8B5B3;
+
+  --font-serif: 'Lora', Georgia, serif;
+  --font-sans:  'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  overflow:hidden;background:var(--teal-deep);color:var(--cream);
+  font-family:var(--font-sans);font-weight:300;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block}
+
+/* =========================================================
+   SLIDER
+   ========================================================= */
+.slide{
+  position:absolute;inset:0;
+  opacity:0;visibility:hidden;
+  transition:all .55s cubic-bezier(.16,1,.3,1);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:70px 7vw 80px 7vw;
+  overflow:hidden;
+}
+.slide.active{opacity:1;visibility:visible;transform:scale(1)}
+.slide:not(.active){transform:scale(.98)}
+
+.theme-cream{background:var(--cream);color:var(--ink)}
+.theme-teal{
+  background:linear-gradient(135deg,var(--teal-deep) 0%,var(--teal-deep2) 100%);
+  color:var(--cream);
+}
+.theme-teal p{color:rgba(247,243,232,.78)}
+.theme-cream p{color:var(--muted-d)}
+
+/* Chevrones decorativos — más pequeños, no se meten en el contenido */
+.chevrons-tr{
+  position:absolute;top:0;left:0;
+  width:90px;height:90px;
+  pointer-events:none;z-index:0;
+  opacity:.85;
+}
+
+/* Brand card institucional — ahora abajo a la IZQUIERDA para no chocar con nav */
+.brand-card{
+  position:absolute;left:26px;bottom:24px;
+  background:var(--white);
+  border-radius:16px;padding:14px 22px;
+  display:flex;align-items:center;gap:16px;
+  box-shadow:0 10px 30px rgba(15,77,76,.22);
+  z-index:20;
+  font-family:var(--font-sans);
+  max-width:400px;
+}
+.brand-card__logo{
+  display:flex;align-items:center;
+  flex-shrink:0;
+}
+.brand-card__logo img,
+.brand-logo-img{
+  height:54px;width:auto;object-fit:contain;display:block;
+}
+.brand-card__divider{
+  width:1px;height:40px;background:var(--cream-3);
+}
+.brand-card__text{
+  font-size:11px;line-height:1.35;color:var(--ink);
+  font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+}
+.brand-card__text small{
+  display:block;font-weight:400;font-size:9.5px;color:var(--muted-d);
+  letter-spacing:.06em;margin-top:3px;
+}
+
+/* =========================================================
+   NAVEGACIÓN
+   ========================================================= */
+.nav{
+  position:fixed;bottom:24px;right:34px;z-index:200;
+  display:flex;gap:8px;align-items:center;
+  background:rgba(15,77,76,.92);
+  padding:7px 14px;border-radius:30px;
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+}
+.nav-counter{
+  color:var(--cream);font-size:12px;font-weight:600;
+  margin-right:6px;font-variant-numeric:tabular-nums;
+  letter-spacing:.05em;
+}
+.nav-btn{
+  background:rgba(255,255,255,.12);border:none;color:var(--cream);
+  padding:7px 14px;cursor:pointer;
+  font-family:var(--font-sans);font-weight:600;
+  font-size:10px;text-transform:uppercase;
+  letter-spacing:.1em;border-radius:20px;
+  transition:all .3s ease;
+}
+.nav-btn:hover{background:var(--coral);transform:translateY(-1px)}
+
+.progress-bar-container{
+  position:fixed;top:0;left:0;width:100%;height:3px;
+  background:rgba(255,255,255,.08);z-index:100;
+}
+.progress{
+  height:100%;width:0;
+  background:linear-gradient(90deg,var(--gold),var(--coral),var(--teal));
+  transition:width .4s ease;
+}
+
+/* =========================================================
+   TIPOGRAFÍA
+   ========================================================= */
+h1,h2,h3{font-family:var(--font-serif);font-weight:400;margin:0;line-height:1.2}
+h1{font-size:3.2rem;margin-bottom:.35em;letter-spacing:-.02em}
+h2{font-size:1.9rem;margin-bottom:.5em}
+h3{font-size:1.35rem;margin-bottom:.4em}
+p{font-size:1.02rem;line-height:1.7;margin-bottom:.85em}
+
+.kicker{
+  font-family:var(--font-sans);font-size:.7rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.28em;
+  color:var(--coral);margin-bottom:.9em;display:block;
+}
+.theme-teal .kicker{color:var(--gold)}
+.kicker.teal{color:var(--teal-d)}
+.kicker.gold{color:var(--gold-d)}
+.theme-teal .kicker.teal{color:var(--gold)}
+.theme-teal .kicker.gold{color:var(--gold)}
+
+/* =========================================================
+   LAYOUTS
+   ========================================================= */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:45px;align-items:center}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+
+/* =========================================================
+   CARDS
+   ========================================================= */
+.card{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.14);
+  padding:22px;border-radius:10px;
+  transition:all .3s ease;
+}
+.theme-cream .card{
+  background:var(--white);
+  border:1px solid rgba(15,77,76,.08);
+  box-shadow:0 6px 20px rgba(15,77,76,.06);
+}
+.card:hover{transform:translateY(-3px);border-color:var(--teal)}
+.card p{font-size:.92rem;margin-bottom:0}
+
+.case{
+  background:var(--white);
+  border-left:4px solid var(--coral);
+  border-radius:8px;padding:18px 22px;margin-top:14px;
+  box-shadow:0 6px 20px rgba(15,77,76,.08);
+}
+.theme-teal .case{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.14);
+  border-left:4px solid var(--coral);
+  box-shadow:none;
+}
+.case__label{
+  font-size:.62rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.24em;
+  color:var(--coral);margin-bottom:.4rem;
+}
+.case.teal{border-left-color:var(--teal)}
+.case.teal .case__label{color:var(--teal-d)}
+.theme-teal .case.teal .case__label{color:var(--teal)}
+.case.gold{border-left-color:var(--gold)}
+.case.gold .case__label{color:var(--gold-d)}
+.theme-teal .case.gold .case__label{color:var(--gold)}
+.case h3{font-size:1.02rem;margin-bottom:.35rem}
+.case p{font-size:.86rem;line-height:1.6;margin-bottom:0}
+
+.interactive-box{
+  background:#0A2528;
+  border:1px solid rgba(44,177,168,.35);
+  border-radius:14px;padding:22px;
+  position:relative;overflow:hidden;
+  box-shadow:0 20px 50px rgba(0,0,0,.4);
+}
+.theme-cream .interactive-box{background:#0F2A2E;color:#fff}
+.theme-teal .interactive-box{background:rgba(0,0,0,.35);color:#fff}
+.interactive-box h4{
+  color:var(--muted-l);font-size:.72rem;
+  text-transform:uppercase;letter-spacing:.18em;
+  font-weight:600;margin:0 0 10px;
+}
+
+.btn-action{
+  background:var(--teal);color:white;border:none;
+  padding:11px 22px;border-radius:6px;
+  font-family:var(--font-sans);font-weight:600;font-size:.82rem;
+  cursor:pointer;transition:.2s;
+  display:inline-flex;align-items:center;gap:8px;
+  letter-spacing:.02em;
+}
+.btn-action:hover{background:var(--teal-d);transform:scale(1.02)}
+.btn-action.red{background:var(--coral)}
+.btn-action.red:hover{background:var(--coral-d)}
+
+/* =========================================================
+   ÍNDICE
+   ========================================================= */
+.index-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:18px;margin-top:24px;
+}
+.index-card{
+  display:block;padding:22px 24px;
+  background:var(--white);
+  border-radius:10px;
+  border-left:5px solid var(--teal);
+  text-decoration:none;color:inherit;
+  transition:all .25s ease;cursor:pointer;
+  position:relative;text-align:left;
+  border-top:none;border-right:none;border-bottom:none;
+  font-family:inherit;width:100%;
+  box-shadow:0 6px 20px rgba(15,77,76,.06);
+}
+.index-card:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(15,77,76,.14)}
+.index-card:nth-child(2){border-left-color:var(--coral)}
+.index-card:nth-child(3){border-left-color:var(--gold)}
+.index-card:nth-child(4){border-left-color:var(--teal-d)}
+.ic-num{
+  font-family:var(--font-serif);font-size:1.5rem;
+  color:var(--teal-d);margin-bottom:.2rem;
+}
+.index-card:nth-child(2) .ic-num{color:var(--coral)}
+.index-card:nth-child(3) .ic-num{color:var(--gold-d)}
+.index-card:nth-child(4) .ic-num{color:var(--teal-d)}
+.ic-title{font-size:1rem;font-weight:600;color:var(--ink);margin-bottom:.25rem}
+.ic-desc{font-size:.78rem;color:var(--muted-d);line-height:1.5}
+.ic-arrow{
+  position:absolute;right:20px;top:50%;
+  transform:translateY(-50%);
+  color:var(--muted-d);font-size:1rem;
+  transition:all .25s ease;
+}
+.index-card:hover .ic-arrow{transform:translateY(-50%) translateX(4px);color:var(--teal)}
+
+/* =========================================================
+   PORTADA
+   ========================================================= */
+.slide--cover{
+  padding:0;
+  display:grid;
+  grid-template-columns:1.05fr 1fr;
+  justify-content:initial;
+  align-items:stretch;
+}
+.cover-left{
+  background:var(--cream);
+  color:var(--ink);
+  padding:70px 60px 60px 90px;
+  display:flex;flex-direction:column;justify-content:center;
+  gap:3rem;
+  position:relative;z-index:2;
+  overflow:hidden;
+}
+.cover-left .corner-chevrons{
+  position:absolute;top:0;left:0;
+  width:110px;height:110px;
+  opacity:.9;pointer-events:none;
+}
+.cover-right{
+  background:linear-gradient(160deg,var(--teal) 0%,var(--teal-d) 100%);
+  color:var(--white);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:60px 55px;
+  position:relative;overflow:hidden;
+}
+.cover-logo{
+  width:180px;height:auto;
+  max-height:180px;
+  object-fit:contain;
+  margin-bottom:1.8rem;
+  position:relative;z-index:2;
+  display:block;
+}
+.cover-right::before{
+  content:"";
+  position:absolute;right:-20%;top:-10%;
+  width:85%;aspect-ratio:1;
+  border:2px solid rgba(255,255,255,.14);
+  border-radius:50%;
+  pointer-events:none;
+}
+.cover-right::after{
+  content:"";
+  position:absolute;right:-35%;bottom:-45%;
+  width:100%;aspect-ratio:1;
+  border:2px solid rgba(255,255,255,.10);
+  border-radius:50%;
+  pointer-events:none;
+}
+.cover-chevrons{
+  position:absolute;top:20px;right:20px;
+  width:150px;height:150px;opacity:.22;
+  pointer-events:none;
+}
+.cover-chevrons-b{
+  position:absolute;bottom:20px;left:-30px;
+  width:130px;height:130px;opacity:.14;
+  pointer-events:none;
+}
+.cover-kicker{
+  font-size:.68rem;font-weight:700;
+  letter-spacing:.28em;text-transform:uppercase;
+  color:var(--teal-d);
+  margin-bottom:1.2rem;display:block;
+}
+.portada-title{
+  font-family:var(--font-serif);
+  font-size:5.2rem;font-weight:400;
+  line-height:.95;letter-spacing:-.025em;
+  color:var(--ink);margin-bottom:1rem;
+}
+.portada-title em{
+  color:var(--coral);font-style:italic;
+}
+.cover-sub{
+  font-family:var(--font-serif);
+  font-size:1.1rem;font-style:italic;
+  line-height:1.5;color:var(--muted-d);
+  max-width:420px;
+}
+.cover-meta{
+  font-size:.72rem;color:var(--muted-d);
+  line-height:1.9;letter-spacing:.06em;
+}
+.cover-meta strong{
+  display:block;color:var(--teal-d);
+  font-weight:700;letter-spacing:.2em;
+  text-transform:uppercase;font-size:.66rem;
+  margin-bottom:.35rem;
+}
+.authors-badge{display:flex;flex-wrap:wrap;gap:8px;margin-top:1rem}
+.author-tag{
+  background:rgba(15,77,76,.06);
+  border:1px solid rgba(15,77,76,.12);
+  padding:6px 14px;border-radius:20px;
+  font-size:.72rem;color:var(--ink);
+  letter-spacing:.02em;
+  transition:all .25s;
+}
+.author-tag:hover{background:var(--teal);color:white;border-color:var(--teal)}
+.author-tag.lead{
+  background:var(--coral);color:white;
+  border-color:var(--coral);font-weight:600;
+}
+.cover-right .uni-name{
+  font-family:var(--font-serif);
+  font-size:1.9rem;line-height:1.15;
+  margin-bottom:1rem;position:relative;z-index:2;
+}
+.cover-right .uni-name em{
+  font-style:italic;color:var(--gold);display:block;
+}
+.cover-right .uni-sub{
+  font-size:.82rem;letter-spacing:.12em;
+  text-transform:uppercase;opacity:.8;
+  position:relative;z-index:2;
+}
+.cover-right .uni-hair{
+  width:60px;height:3px;background:var(--gold);
+  margin:1.2rem 0;position:relative;z-index:2;
+}
+.cover-right .uni-foot{
+  font-size:.75rem;opacity:.7;
+  line-height:1.6;max-width:320px;
+  position:relative;z-index:2;
+}
+.cover-right .uni-logos{
+  display:flex;gap:8px;margin-top:1.6rem;
+  position:relative;z-index:2;
+  flex-wrap:wrap;
+}
+.cover-right .uni-logo-pill{
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.24);
+  padding:5px 10px;border-radius:6px;
+  font-size:.58rem;letter-spacing:.14em;
+  text-transform:uppercase;font-weight:600;
+}
+
+/* =========================================================
+   CIERRE
+   ========================================================= */
+.end-content{max-width:850px;margin:0 auto;text-align:center;position:relative;z-index:2}
+
+/* =========================================================
+   ANIMACIONES
+   ========================================================= */
+.slide.active .anim{animation:fadeInUp .7s cubic-bezier(.16,1,.3,1) forwards}
+.slide .anim{opacity:0;transform:translateY(24px)}
+.delay-1{animation-delay:.1s !important}
+.delay-2{animation-delay:.2s !important}
+
+@keyframes fadeInUp{to{opacity:1;transform:translateY(0)}}
+
+/* =========================================================
+   NOTAS DEL ORADOR
+   ========================================================= */
+.notes-toggle{
+  position:fixed;top:14px;right:14px;
+  background:rgba(15,77,76,.92);color:var(--cream);
+  border:1px solid rgba(255,255,255,.18);
+  padding:7px 14px;border-radius:20px;
+  font-family:var(--font-sans);font-size:.66rem;
+  text-transform:uppercase;letter-spacing:.15em;
+  cursor:pointer;z-index:210;
+  opacity:.6;transition:opacity .2s;
+}
+.notes-toggle:hover{opacity:1}
+.notes-panel{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--teal-deep);color:var(--cream);
+  max-height:42%;overflow-y:auto;
+  padding:22px 40px 26px;
+  transform:translateY(100%);
+  transition:transform .35s ease;
+  z-index:250;
+  border-top:3px solid var(--gold);
+}
+.notes-panel.open{transform:translateY(0)}
+.notes-panel__header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;
+  font-size:.7rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--gold);
+  font-weight:600;
+}
+.notes-panel__close{
+  background:none;border:none;color:var(--cream);
+  font-size:1.4rem;cursor:pointer;opacity:.6;
+}
+.notes-panel__close:hover{opacity:1}
+.notes-panel__body{
+  font-size:.92rem;line-height:1.65;
+  color:rgba(247,243,232,.85);max-width:900px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width:900px){
+  h1{font-size:2.1rem}
+  .portada-title{font-size:3rem}
+  .slide--cover{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+  .cover-left,.cover-right{padding:50px 40px}
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;gap:18px}
+  .index-grid{grid-template-columns:1fr}
+  .slide{padding:60px 6vw 70px 6vw}
+  .brand-card{display:none}
+}
+
+/* =========================================================
+   PRINT — Exportar a PDF (Ctrl+P)
+   ========================================================= */
+@media print {
+  @page {
+    size: 1920px 1080px;
+    margin: 0;
+  }
+
+  html, body {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  .slide {
+    position: relative !important;
+    inset: auto !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    width: 100% !important;
+    height: 1080px !important;
+    min-height: 1080px !important;
+    padding: 55px 6vw !important;
+    page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .slide:last-of-type {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  .progress-bar-container,
+  .nav,
+  .notes-toggle,
+  .notes-panel {
+    display: none !important;
+  }
+
+  .anim {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  * {
+    transition: none !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar-container"><div class="progress" id="progressBar"></div></div>
+
+<button class="notes-toggle" id="notesToggle">Notas · N</button>
+<aside class="notes-panel" id="notesPanel">
+  <div class="notes-panel__header">
+    <span>Notas del orador</span>
+    <button class="notes-panel__close" id="notesClose">×</button>
+  </div>
+  <div class="notes-panel__body" id="notesBody"></div>
+</aside>
+
+<div class="nav">
+  <span class="nav-counter" id="slideCounter">01 / 16</span>
+  <button class="nav-btn" onclick="prevSlide()">←</button>
+  <button class="nav-btn" onclick="nextSlide()">→</button>
+  <button class="nav-btn" onclick="toggleFullScreen()">⛶</button>
+</div>
+
+<!-- ============================================================
+     01 · PORTADA
+     ============================================================ -->
+<section class="slide active slide--cover" data-notes="Portada. Presentar al grupo y anunciar el tema: seguridad IP, protocolos, ataques y controles. Duración total aproximada: 15 minutos.">
+  <div class="cover-left">
+    <svg class="corner-chevrons" viewBox="0 0 130 130" aria-hidden="true">
+      <path d="M12 12 L54 65 L12 118" fill="none" stroke="#EF5B5B" stroke-width="9"/>
+      <path d="M38 12 L80 65 L38 118" fill="none" stroke="#2CB1A8" stroke-width="9"/>
+      <path d="M64 12 L106 65 L64 118" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    </svg>
+    <div>
+      <span class="cover-kicker">Ciberseguridad & Redes · Uniguajira</span>
+      <h1 class="portada-title">Seguridad<br><em>IP</em></h1>
+      <p class="cover-sub">Protocolos, vectores de ataque y arquitectura de protección en tránsito.</p>
+    </div>
+    <div>
+      <div class="authors-badge">
+        <span class="author-tag lead">Joás Alvarez</span>
+        <span class="author-tag lead">Luis Miranda</span>
+        <span class="author-tag lead">Jean Amaya</span>
+        <span class="author-tag lead">Johansen Chapman</span>
+      </div>
+      <div class="cover-meta" style="margin-top:1.4rem">
+        <strong>Curso</strong>
+        Auditoria y seguridad de la informacion · 2026 - II
+      </div>
+    </div>
+  </div>
+  <div class="cover-right">
+    <svg class="cover-chevrons" viewBox="0 0 180 180" aria-hidden="true">
+      <path d="M20 20 L80 90 L20 160" fill="none" stroke="#FFFFFF" stroke-width="14"/>
+      <path d="M60 20 L120 90 L60 160" fill="none" stroke="#FFFFFF" stroke-width="14"/>
+      <path d="M100 20 L160 90 L100 160" fill="none" stroke="#FFFFFF" stroke-width="14"/>
+    </svg>
+    <img src="logo-uniguajira.png" alt="Uniguajira" class="cover-logo">
+    <h2 class="uni-name">Universidad<br><em>de La Guajira</em></h2>
+    <div class="uni-hair"></div>
+    <p class="uni-sub">Shikii Ekirajia Pülee Wajiira</p>
+    <p class="uni-foot">Acreditada institucionalmente en Alta Calidad · Ministerio de Educación Nacional</p>
+    <div class="uni-logos">
+      <span class="uni-logo-pill">ISO 9001</span>
+      <span class="uni-logo-pill">IQNET</span>
+      <span class="uni-logo-pill">Vigilada MinEducación</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     02 · ÍNDICE
+     ============================================================ -->
+<section class="slide theme-cream" data-notes="Índice navegable. Explicar los cuatro bloques. Hacer clic en cualquier tarjeta para saltar directo. Atajos de teclado siguen funcionando.">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EF5B5B" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#2CB1A8" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="anim" style="padding-left:90px">
+    <span class="kicker">Contenido</span>
+    <h1>Cuatro movimientos</h1>
+    <p>Haz clic en cualquier tarjeta para ir directo a esa sección.</p>
+  </div>
+  <div class="index-grid anim delay-1">
+    <button class="index-card" data-goto="2">
+      <div class="ic-num">01</div>
+      <div class="ic-title">Fundamentos y marco normativo</div>
+      <div class="ic-desc">Qué protegemos, C.I.D.A., cadena del riesgo, CONPES y normas en Colombia.</div>
+      <span class="ic-arrow">→</span>
+    </button>
+    <button class="index-card" data-goto="4">
+      <div class="ic-num">02</div>
+      <div class="ic-title">Protocolos: IPsec, VPN y TLS</div>
+      <div class="ic-desc">Cómo se cifra y autentica la comunicación entre extremos.</div>
+      <span class="ic-arrow">→</span>
+    </button>
+    <button class="index-card" data-goto="6">
+      <div class="ic-num">03</div>
+      <div class="ic-title">Ataques: spoofing, sniffing, DDoS</div>
+      <div class="ic-desc">Cómo operan, con un caso real cada uno.</div>
+      <span class="ic-arrow">→</span>
+    </button>
+    <button class="index-card" data-goto="9">
+      <div class="ic-num">04</div>
+      <div class="ic-title">Protección y respuesta</div>
+      <div class="ic-desc">Segmentación, Zero Trust, filtrado y plan de 10 controles.</div>
+      <span class="ic-arrow">→</span>
+    </button>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     03 · FUNDAMENTOS + C.I.D.A.
+     ============================================================ -->
+<section class="slide theme-teal" data-notes="Definir qué es la seguridad IP y presentar los 4 pilares. Recalcar que es un proceso continuo. Ejemplos concretos: contraseña capturada (C), transferencia alterada (I), portal caído (D), banco suplantado (A).">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="anim" style="padding-left:90px">
+    <span class="kicker gold">01 · Fundamentos</span>
+    <h1>Fundamentos y <em style="color:var(--gold);font-style:italic">pilares C.I.D.A.</em></h1>
+    <p style="max-width:820px">La seguridad IP protege la información que circula por redes IPv4 e IPv6. Su objetivo se resume en cuatro propiedades fundamentales.</p>
+  </div>
+  <div class="grid-4 anim delay-1" style="margin-top:20px">
+    <div class="card" style="border-top:4px solid var(--coral)">
+      <h3 style="color:var(--coral);font-size:1.15rem">Confidencialidad</h3>
+      <p>Solo quien debe leer, lee. Ej: alguien captura tu contraseña en texto plano.</p>
+    </div>
+    <div class="card" style="border-top:4px solid var(--teal)">
+      <h3 style="color:var(--teal);font-size:1.15rem">Integridad</h3>
+      <p>Nadie altera el dato en tránsito. Ej: modifican una transferencia.</p>
+    </div>
+    <div class="card" style="border-top:4px solid var(--gold)">
+      <h3 style="color:var(--gold);font-size:1.15rem">Disponibilidad</h3>
+      <p>El servicio responde. Ej: el portal se cae por un DDoS.</p>
+    </div>
+    <div class="card" style="border-top:4px solid var(--cream)">
+      <h3 style="color:var(--cream);font-size:1.15rem">Autenticidad</h3>
+      <p>Sabemos quién es quién. Ej: un atacante se hace pasar por el banco.</p>
+    </div>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     04 · CADENA DEL RIESGO + CONPES + NORMATIVO
+     ============================================================ -->
+<section class="slide theme-cream" data-notes="Slide clave del marco normativo. Orden de arriba hacia abajo: los CONPES definen la política pública; la Resolución 500 la operacionaliza mediante el MSPI; las leyes complementan (1581 datos personales, 1273 delitos informáticos); ISO 27001 aporta el estándar internacional. La cadena del riesgo se explica con el ejemplo de la universidad.">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EF5B5B" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#2CB1A8" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="anim" style="padding-left:90px">
+    <span class="kicker teal">01 · Marco normativo</span>
+    <h1>Riesgo y <em style="color:var(--teal-d);font-style:italic">política pública en Colombia</em></h1>
+  </div>
+
+  <div class="grid-2 anim delay-1" style="margin-top:14px;align-items:start">
+    <!-- Columna izquierda: cadena del riesgo -->
+    <div>
+      <h3 style="margin-bottom:12px">La cadena del riesgo</h3>
+      <div style="background:var(--white);padding:16px;border-radius:8px;font-family:monospace;font-size:12px;line-height:1.8;border:1px solid rgba(15,77,76,.1)">
+        <strong>ACTIVO</strong> (Base de datos con notas)<br>
+        └─► <strong>AMENAZA</strong> (Atacante externo)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;└─► <strong>VULNERABILIDAD</strong> (Contraseña débil)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─► <strong>RIESGO</strong> (Probabilidad × impacto)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─► <strong>INCIDENTE</strong> (Fuga de datos)
+      </div>
+      <div class="case" style="margin-top:12px">
+        <div class="case__label">Caso</div>
+        <h3 style="font-size:.98rem">Una universidad y sus notas</h3>
+        <p>Un atacante aprovecha una contraseña débil, entra al servidor y filtra las notas. Afecta confidencialidad, reputación, y viola la Ley 1581 de 2012.</p>
+      </div>
+    </div>
+
+    <!-- Columna derecha: jerarquía normativa -->
+    <div>
+      <h3 style="margin-bottom:12px">Jerarquía normativa</h3>
+
+      <!-- CONPES -->
+      <div class="card" style="margin-bottom:8px;border-left:4px solid var(--teal-d);padding:14px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <strong style="color:var(--teal-d);font-size:.85rem">CONPES 3854</strong>
+          <span style="font-size:.65rem;color:var(--muted-d);letter-spacing:.1em">2016</span>
+        </div>
+        <p style="font-size:.8rem;line-height:1.45;margin:0">Política Nacional de Seguridad Digital: obliga a todos los actores a gestionar riesgos.</p>
+      </div>
+      <div class="card" style="margin-bottom:10px;border-left:4px solid var(--teal-d);padding:14px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <strong style="color:var(--teal-d);font-size:.85rem">CONPES 3995</strong>
+          <span style="font-size:.65rem;color:var(--muted-d);letter-spacing:.1em">2020</span>
+        </div>
+        <p style="font-size:.8rem;line-height:1.45;margin:0">Política Nacional de Confianza y Seguridad Digital: amplía la confianza en el ecosistema.</p>
+      </div>
+
+      <!-- Normas derivadas -->
+      <div class="card" style="margin-bottom:8px;border-left:4px solid var(--coral);padding:12px 18px">
+        <strong style="color:var(--ink);font-size:.82rem">Resolución 500 / 2021 (MinTIC)</strong>
+        <p style="font-size:.78rem;line-height:1.45;margin:2px 0 0">Lineamientos del MSPI: riesgos, controles e incidentes.</p>
+      </div>
+      <div class="card" style="margin-bottom:8px;border-left:4px solid var(--teal);padding:12px 18px">
+        <strong style="color:var(--ink);font-size:.82rem">Ley 1581 / 2012</strong>
+        <p style="font-size:.78rem;line-height:1.45;margin:2px 0 0">Protección de datos personales.</p>
+      </div>
+      <div class="card" style="margin-bottom:8px;border-left:4px solid var(--gold);padding:12px 18px">
+        <strong style="color:var(--ink);font-size:.82rem">Ley 1273 / 2009</strong>
+        <p style="font-size:.78rem;line-height:1.45;margin:2px 0 0">Tipifica delitos informáticos.</p>
+      </div>
+      <div class="card" style="border-left:4px solid var(--teal-d);padding:12px 18px">
+        <strong style="color:var(--ink);font-size:.82rem">ISO/IEC 27001 · PHVA</strong>
+        <p style="font-size:.78rem;line-height:1.45;margin:2px 0 0">SGSI y mejora continua.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     05 · IPSEC + SIMULADOR 1
+     ============================================================ -->
+<section class="slide theme-teal" data-notes="IPsec: capa 3. ESP cifra + autentica (moderno); AH solo autentica (obsoleto); IKEv2 negocia claves. El simulador muestra la encapsulación en modo túnel. El caso Maicao–Riohacha es ejemplo real.">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="grid-2">
+    <div class="anim" style="padding-left:60px">
+      <span class="kicker gold">02 · Protocolos</span>
+      <h1>IPsec: <em style="color:var(--gold);font-style:italic">cifrado en capa 3</em></h1>
+      <p>Familia de protocolos que protege paquetes IP completos. <strong>ESP</strong> cifra y autentica; <strong>AH</strong> solo autentica (obsoleto); <strong>IKEv2</strong> negocia las claves.</p>
+      <p>Presiona el botón para simular la <strong>encapsulación en modo túnel</strong>:</p>
+      <button class="btn-action" onclick="toggleIPsecEncapsulation()">
+        <span id="ipsecBtnText">Aplicar Protección IPsec (ESP)</span>
+      </button>
+      <div class="case teal" style="margin-top:16px">
+        <div class="case__label">Caso</div>
+        <h3 style="font-size:.98rem">Dos sedes conectadas por un túnel</h3>
+        <p>Una empresa con oficinas en Maicao y Riohacha conecta sus routers con IPsec. Todo el tráfico entre sedes viaja cifrado por Internet.</p>
+      </div>
+    </div>
+    <div class="interactive-box anim delay-1">
+      <h4>Estructura del paquete IP</h4>
+      <div id="packetDisplay" style="display:flex;gap:8px;margin-top:30px;transition:all .5s">
+        <div style="background:#333;padding:20px 15px;border-radius:6px;font-family:monospace;font-size:12px;text-align:center;flex:1;color:#fff">Cabecera IP Original</div>
+        <div style="background:#444;padding:20px 15px;border-radius:6px;font-family:monospace;font-size:12px;text-align:center;flex:2;color:#fff">Datos (Texto Plano)</div>
+      </div>
+      <div id="ipsecStatus" style="margin-top:30px;font-size:12px;color:var(--gold);font-family:monospace">
+        Estado: Paquete sin cifrar (Vulnerable)
+      </div>
+    </div>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     06 · VPN vs TLS
+     ============================================================ -->
+<section class="slide theme-cream" data-notes="VPN y TLS no compiten: operan en capas distintas. VPN en capa 3, TLS en capa 4-7. Ejemplo del portal académico es el más cercano. Aclarar que VPN no reemplaza firewall, MFA ni segmentación.">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EF5B5B" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#2CB1A8" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="anim" style="padding-left:90px">
+    <span class="kicker teal">02 · Protocolos</span>
+    <h1>VPN <em style="color:var(--gold-d);font-style:italic">vs.</em> TLS (HTTPS)</h1>
+    <p>Ambas tecnologías cifran tráfico, pero operan en capas totalmente distintas. No son excluyentes.</p>
+  </div>
+  <div class="grid-2 anim delay-1" style="margin-top:16px">
+    <div class="card" style="border-top:4px solid var(--teal)">
+      <h2 style="font-size:1.6rem;color:var(--teal-d);margin-bottom:.4em">VPN</h2>
+      <p><strong>Capa 3 (Red):</strong> Conecta redes completas o un dispositivo a una infraestructura privada. Todo el tráfico del equipo viaja seguro, sin importar la aplicación.</p>
+      <span style="font-size:11px;background:rgba(44,177,168,.15);color:var(--teal-d);padding:5px 12px;border-radius:4px;font-weight:600;letter-spacing:.04em">TELETRABAJO · SEDES</span>
+    </div>
+    <div class="card" style="border-top:4px solid var(--gold)">
+      <h2 style="font-size:1.6rem;color:var(--gold-d);margin-bottom:.4em">TLS / HTTPS</h2>
+      <p><strong>Capa 4-7 (Aplicación):</strong> Protege la conexión específica entre un navegador y una web. Versión moderna: TLS 1.3 (RFC 8446). Verifica con certificados digitales.</p>
+      <span style="font-size:11px;background:rgba(235,164,60,.15);color:var(--gold-d);padding:5px 12px;border-radius:4px;font-weight:600;letter-spacing:.04em">BANCOS · PORTALES · COMERCIO</span>
+    </div>
+  </div>
+  <div class="case gold" style="margin-top:16px">
+    <div class="case__label">Caso</div>
+    <h3 style="font-size:.98rem">Estudiante entrando al portal académico</h3>
+    <p>Un estudiante abre el portal de Uniguajira por <strong>HTTPS</strong>. TLS protege sus credenciales y verifica el certificado del servidor. Si el portal estuviera en HTTP plano, cualquiera en la misma Wi-Fi podría leer su usuario y contraseña.</p>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     07 · SPOOFING
+     ============================================================ -->
+<section class="slide theme-teal" data-notes="Spoofing: 4 tipos. El caso de ARP spoofing paso a paso es muy visual. Recalcar que spoofing se combina con phishing (email) y amplificación DDoS (IP).">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="anim" style="padding-left:90px">
+    <span class="kicker gold">03 · Ataques</span>
+    <h1>Spoofing <em style="color:var(--gold);font-style:italic">— suplantación</em></h1>
+    <p style="max-width:820px">Falsificar una identidad o un dato para aparentar ser otro equipo, usuario o servicio confiable. Es la puerta de entrada a phishing, interceptación y amplificación DDoS.</p>
+  </div>
+  <div class="grid-4 anim delay-1" style="margin-top:16px">
+    <div class="card" style="border-top:3px solid var(--coral)">
+      <h3 style="font-size:1.05rem">IP spoofing</h3>
+      <p>Falsifica la IP de origen. Base de ataques de amplificación.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--teal)">
+      <h3 style="font-size:1.05rem">ARP spoofing</h3>
+      <p>Asocia fraudulentamente IP ↔ MAC en la red local.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--gold)">
+      <h3 style="font-size:1.05rem">DNS spoofing</h3>
+      <p>Respuesta DNS falsa. Redirige a un sitio malicioso.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--cream)">
+      <h3 style="font-size:1.05rem">Email spoofing</h3>
+      <p>Falsifica el remitente de un correo. Base del phishing.</p>
+    </div>
+  </div>
+  <div class="case anim delay-2" style="margin-top:14px">
+    <div class="case__label">Caso paso a paso · ARP spoofing</div>
+    <h3 style="font-size:.98rem">El atacante en la misma red local</h3>
+    <p><strong>1.</strong> La víctima cree que el router tiene MAC <em>rr:rr</em>. Todo normal. <strong>2.</strong> El atacante se conecta a la misma red y envía ARP falsos: a la víctima le dice que él es el router; al router, que él es la víctima. <strong>3.</strong> Todo el tráfico pasa por el atacante (ataque <em>man in the middle</em>). <strong>4.</strong> Si la víctima envía su contraseña por HTTP, el atacante la captura. Si va por HTTPS, no lee el contenido, pero sí los metadatos.</p>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     08 · SNIFFING + SIMULADOR 2
+     ============================================================ -->
+<section class="slide theme-cream" id="slide-sniffer" data-notes="Sniffing: distinguir diagnóstico autorizado de ataque. El simulador muestra cómo el atacante ve la contraseña en texto plano sin cifrado; con TLS solo ve bytes cifrados. Incluso con cifrado, los metadatos se filtran.">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EF5B5B" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#2CB1A8" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="grid-2">
+    <div class="anim" style="padding-left:60px">
+      <span class="kicker">03 · Ataques</span>
+      <h1>Sniffing <em style="color:var(--coral);font-style:italic">— captura de tráfico</em></h1>
+      <p>Capturar y analizar tráfico. El administrador lo hace con autorización; se vuelve ataque cuando se intercepta sin permiso para obtener información sensible.</p>
+      <p>Activa y desactiva el cifrado para ver la diferencia:</p>
+      <button class="btn-action red" onclick="toggleEncryptionSniffer()">
+        <span id="snifferBtnText">Activar Cifrado TLS/HTTPS</span>
+      </button>
+    </div>
+    <div class="interactive-box anim delay-1">
+      <h4>Simulador de interceptación de red</h4>
+      <div style="position:relative;height:130px;border-bottom:1px dashed var(--muted-l);margin-top:20px">
+        <div id="sniffPacket" style="position:absolute;top:35px;left:0;background:var(--coral);padding:9px 16px;border-radius:20px;font-family:monospace;font-size:12px;color:white;transition:background .3s">
+          payload: admin:1234
+        </div>
+        <div style="position:absolute;right:20px;top:8px;text-align:center">
+          <span style="font-size:32px">🕵️‍♂️</span><br>
+          <span style="font-size:10px;color:var(--coral);letter-spacing:.1em">SNIFFER</span>
+        </div>
+      </div>
+      <div id="snifferOutput" style="margin-top:18px;font-family:monospace;font-size:12px;color:var(--coral);line-height:1.5">
+        Atacante captura: "user=admin&pass=1234" 🚨
+      </div>
+    </div>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     09 · DDOS + SIMULADOR 3
+     ============================================================ -->
+<section class="slide theme-teal" data-notes="DDoS: tres vectores. El simulador visualiza el colapso del servidor. Cifras: Dyn 2016, GitHub 2018 (1.35 Tbps), AWS 2020 (2.3 Tbps). Explicar amplificación DNS: 1 Mbps → 50 Mbps.">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="grid-2">
+    <div class="anim" style="padding-left:60px">
+      <span class="kicker gold">03 · Ataques</span>
+      <h1>DDoS: <em style="color:var(--gold);font-style:italic">denegación distribuida</em></h1>
+      <p>El objetivo no es robar datos, sino <strong>destruir la disponibilidad</strong> saturando recursos mediante una botnet. Tres vectores: volumétrico, de protocolo y de aplicación.</p>
+      <div style="margin-top:16px">
+        <label style="font-size:12px;font-weight:600;color:rgba(247,243,232,.7);letter-spacing:.1em;text-transform:uppercase">Tráfico de la botnet</label>
+        <input type="range" id="ddosRange" min="1" max="100" value="10" style="width:100%;margin-top:10px;accent-color:var(--coral)">
+      </div>
+      <div class="case" style="margin-top:14px">
+        <div class="case__label">Caso · Amplificación DNS</div>
+        <p>El atacante <strong>falsifica la IP de la víctima</strong> y envía consultas pequeñas a servidores DNS abiertos. Los servidores responden con paquetes <strong>mucho más grandes</strong> hacia la víctima. Con 1 Mbps de consultas se generan 50 Mbps. Casos: Dyn 2016, GitHub 2018 (1.35 Tbps), AWS 2020 (2.3 Tbps).</p>
+      </div>
+    </div>
+    <div class="interactive-box anim delay-1" style="text-align:center">
+      <h4 style="text-align:left">Estado del servidor</h4>
+      <div id="ddosServer" style="width:100px;height:120px;background:var(--teal);border-radius:12px;margin:24px auto;display:flex;align-items:center;justify-content:center;font-size:40px;transition:.3s;box-shadow:0 0 20px rgba(0,0,0,.4)">
+        🖥️
+      </div>
+      <div id="ddosStatus" style="font-family:monospace;font-weight:600;color:#4ade80;font-size:13px">
+        Carga Servidor: 12% (Operativo)
+      </div>
+    </div>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     10 · SEGMENTACIÓN + SIMULADOR 4
+     ============================================================ -->
+<section class="slide theme-cream" data-notes="Segmentación: base de Zero Trust. El simulador muestra cómo un equipo infectado en la Wi-Fi de invitados queda contenido por el firewall. Ejemplo muy cercano a la vida universitaria.">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EF5B5B" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#2CB1A8" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="grid-2">
+    <div class="anim" style="padding-left:60px">
+      <span class="kicker gold">04 · Protección</span>
+      <h1>Segmentación <em style="color:var(--gold-d);font-style:italic">de redes</em></h1>
+      <p>Dividir la red en zonas con distinto nivel de confianza. Cada zona tiene reglas propias. Es la base del modelo Zero Trust.</p>
+      <p style="font-style:italic;color:var(--ink);border-left:3px solid var(--gold);padding-left:14px">
+        "Nunca confiar, siempre verificar."
+      </p>
+      <button class="btn-action" style="background:var(--gold-d);margin-top:12px" onclick="simulateInfection()">
+        Simular infección en Wi-Fi invitados
+      </button>
+    </div>
+    <div class="interactive-box anim delay-1">
+      <h4>Mapa de zonas de red</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px">
+        <div id="zoneGuest" style="border:1px solid var(--muted-l);padding:16px;border-radius:8px;text-align:center;transition:.4s">
+          <span style="font-size:11px;color:var(--muted-l);letter-spacing:.08em;text-transform:uppercase">Zona Invitados</span><br>
+          <span style="font-size:24px;display:block;margin-top:6px">📱</span>
+          <span style="font-size:11px">Laptop</span>
+        </div>
+        <div id="zoneServer" style="border:1px solid var(--teal);padding:16px;border-radius:8px;text-align:center;background:rgba(44,177,168,.12)">
+          <span style="font-size:11px;color:var(--teal);letter-spacing:.08em;text-transform:uppercase">Zona Servidores</span><br>
+          <span style="font-size:24px;display:block;margin-top:6px">🗄️</span>
+          <span style="font-size:11px">Base de Datos</span>
+        </div>
+      </div>
+      <div id="firewallBarrier" style="margin-top:14px;background:var(--gold);color:#0F2A2E;text-align:center;font-size:11px;font-weight:700;padding:7px;border-radius:4px;letter-spacing:.08em">
+        🔥 FIREWALL / ACL · BLOQUEANDO TRÁFICO LATERAL
+      </div>
+      <div id="infectionStatus" style="margin-top:14px;font-family:monospace;font-size:11px;color:var(--cream);line-height:1.5">
+        Estado: Red segura y aislada.
+      </div>
+    </div>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     11 · ZERO TRUST
+     ============================================================ -->
+<section class="slide theme-teal" data-notes="Zero Trust: NIST SP 800-207. Reemplaza 'red interna = confiable'. Tres principios: verificar explícitamente, mínimo privilegio, asumir el compromiso. Caso del empleado en el aeropuerto.">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="anim" style="padding-left:90px">
+    <span class="kicker gold">04 · Protección</span>
+    <h1>Zero Trust: <em style="color:var(--gold);font-style:italic">no confiar, siempre verificar</em></h1>
+    <p style="max-width:820px">Modelo definido por NIST SP 800-207. Reemplaza la idea de "red interna = confiable". Ya nadie está dentro: cada acceso se verifica.</p>
+  </div>
+  <div class="grid-3 anim delay-1" style="margin-top:18px">
+    <div class="card" style="border-top:3px solid var(--gold)">
+      <div style="font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem">Principio 01</div>
+      <h3 style="font-size:1.05rem">Verificar explícitamente</h3>
+      <p>Cada acceso se autentica y autoriza según identidad, dispositivo, ubicación y contexto. No por estar "dentro".</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--gold)">
+      <div style="font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem">Principio 02</div>
+      <h3 style="font-size:1.05rem">Mínimo privilegio</h3>
+      <p>Cada usuario y dispositivo tiene solo los permisos necesarios, por el tiempo necesario.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--gold)">
+      <div style="font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem">Principio 03</div>
+      <h3 style="font-size:1.05rem">Asumir el compromiso</h3>
+      <p>Se asume que la red puede estar comprometida. Se diseña para detectar, contener y reducir el impacto.</p>
+    </div>
+  </div>
+  <div class="case gold anim delay-2" style="margin-top:16px">
+    <div class="case__label">Caso</div>
+    <h3 style="font-size:.98rem">Empleado conectándose desde el aeropuerto</h3>
+    <p>Un empleado quiere entrar al sistema de facturación desde el aeropuerto. Con <strong>Zero Trust</strong>: se verifica su identidad (MFA), se verifica que el dispositivo tenga antivirus y parches al día, se verifica el contexto de red, y solo entonces se le da acceso <strong>temporal y limitado</strong>. Si algo no cuadra, se bloquea.</p>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     12 · FILTRADO
+     ============================================================ -->
+<section class="slide theme-cream" data-notes="Filtrado: qué permitimos, qué bloqueamos, qué inspeccionamos. Principio: denegar por defecto. Tres niveles: perímetro, inspección y control de acceso.">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EF5B5B" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#2CB1A8" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="anim" style="padding-left:90px">
+    <span class="kicker gold">04 · Protección</span>
+    <h1>Filtrado <em style="color:var(--gold-d);font-style:italic">de tráfico</em></h1>
+    <p style="max-width:820px">Permitir, bloquear o inspeccionar comunicaciones según reglas: IP, puerto, protocolo, usuario, aplicación, horario o comportamiento. Principio: <strong>denegar por defecto, permitir solo lo necesario</strong>.</p>
+  </div>
+  <div class="grid-4 anim delay-1" style="margin-top:18px">
+    <div class="card" style="border-top:3px solid var(--teal)">
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--teal-d);margin-bottom:.4rem">Perímetro</div>
+      <h3 style="font-size:1rem">Firewall</h3>
+      <p>Controla el tráfico entre redes o hacia Internet.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--teal)">
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--teal-d);margin-bottom:.4rem">Perímetro</div>
+      <h3 style="font-size:1rem">ACL</h3>
+      <p>Reglas en routers y switches para permitir o denegar.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--coral)">
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--coral);margin-bottom:.4rem">Inspección</div>
+      <h3 style="font-size:1rem">IDS / IPS</h3>
+      <p>IDS detecta y alerta. IPS detecta y bloquea.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--coral)">
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--coral);margin-bottom:.4rem">Inspección</div>
+      <h3 style="font-size:1rem">WAF</h3>
+      <p>Firewall especializado en apps web y APIs.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--gold)">
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-d);margin-bottom:.4rem">Acceso</div>
+      <h3 style="font-size:1rem">NAC</h3>
+      <p>Controla quién y qué dispositivo se conecta.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--gold)">
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-d);margin-bottom:.4rem">Acceso</div>
+      <h3 style="font-size:1rem">SIEM</h3>
+      <p>Centraliza y correlaciona registros de múltiples fuentes.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--teal-d)">
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--teal-d);margin-bottom:.4rem">Remoto</div>
+      <h3 style="font-size:1rem">VPN + MFA</h3>
+      <p>Acceso remoto cifrado con doble factor.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--teal-d)">
+      <div style="font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--teal-d);margin-bottom:.4rem">Datos</div>
+      <h3 style="font-size:1rem">TLS + IPsec</h3>
+      <p>Cifrado en tránsito entre apps y entre redes.</p>
+    </div>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     13 · DEFENSA EN PROFUNDIDAD
+     ============================================================ -->
+<section class="slide theme-teal" data-notes="Defensa en profundidad: capas que suman. Si una falla, otra contiene. Las 8 capas: personas, perímetro, red, endpoints, aplicación, datos, monitoreo, gestión.">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="anim" style="padding-left:90px">
+    <span class="kicker gold">04 · Protección</span>
+    <h1>Defensa <em style="color:var(--gold);font-style:italic">en profundidad</em></h1>
+    <p style="max-width:820px">Ningún control es suficiente solo. Se combinan capas para que si una falla, otra contenga.</p>
+  </div>
+  <div class="grid-4 anim delay-1" style="margin-top:18px">
+    <div class="card" style="border-top:3px solid var(--gold)"><h3 style="font-size:1rem">Personas</h3><p>Capacitación, concientización, políticas.</p></div>
+    <div class="card" style="border-top:3px solid var(--gold)"><h3 style="font-size:1rem">Perímetro</h3><p>Firewall, IPS, anti-DDoS, WAF.</p></div>
+    <div class="card" style="border-top:3px solid var(--gold)"><h3 style="font-size:1rem">Red</h3><p>Segmentación, VPN, IPsec entre sedes.</p></div>
+    <div class="card" style="border-top:3px solid var(--gold)"><h3 style="font-size:1rem">Endpoints</h3><p>Antivirus, EDR, parches actualizados.</p></div>
+    <div class="card" style="border-top:3px solid var(--gold)"><h3 style="font-size:1rem">Aplicación</h3><p>TLS, WAF, validación de entradas.</p></div>
+    <div class="card" style="border-top:3px solid var(--gold)"><h3 style="font-size:1rem">Datos</h3><p>Cifrado en reposo y tránsito, backups.</p></div>
+    <div class="card" style="border-top:3px solid var(--gold)"><h3 style="font-size:1rem">Monitoreo</h3><p>SIEM, IDS, respuesta a incidentes.</p></div>
+    <div class="card" style="border-top:3px solid var(--gold)"><h3 style="font-size:1rem">Gestión</h3><p>Ciclo PHVA. Mejora continua.</p></div>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     14 · PLAN DE 10 CONTROLES
+     ============================================================ -->
+<section class="slide theme-cream" data-notes="Plan de 10 controles integrados. Cerrar mencionando las 6 fases de respuesta a incidentes, el rol del ColCERT y la obligación de reportar ante la SIC según Ley 1581. Todo esto deriva de los CONPES de seguridad digital.">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EF5B5B" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#2CB1A8" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="anim" style="padding-left:90px">
+    <span class="kicker gold">04 · Protección</span>
+    <h1>Plan de <em style="color:var(--gold-d);font-style:italic">10 controles</em></h1>
+    <p>Controles integrados que combinan tecnología, procesos y personas.</p>
+  </div>
+  <div class="grid-2 anim delay-1" style="margin-top:14px">
+    <ol style="line-height:1.9;font-size:.92rem;padding-left:20px;color:var(--ink)">
+      <li>Clasificación de activos críticos.</li>
+      <li>Segmentación estricta por zonas.</li>
+      <li>Firewall: "denegar por defecto".</li>
+      <li>VPN + MFA para acceso remoto.</li>
+      <li>HTTPS / TLS en todos los servicios web.</li>
+    </ol>
+    <ol start="6" style="line-height:1.9;font-size:.92rem;padding-left:20px;color:var(--ink)">
+      <li>Túneles IPsec entre sedes.</li>
+      <li>Gestión de parches y actualizaciones.</li>
+      <li>Monitoreo con IDS/IPS y SIEM.</li>
+      <li>Plan de respuesta a incidentes.</li>
+      <li><strong>Mejora continua (ciclo PHVA).</strong></li>
+    </ol>
+  </div>
+  <div class="case gold" style="margin-top:14px">
+    <div class="case__label">Respuesta a incidentes · Colombia</div>
+    <p>Cuando algo falla: <strong>preparar · identificar · contener · erradicar · recuperar · aprender</strong>. El <strong>ColCERT</strong> coordina la respuesta nacional. La <strong>Ley 1581</strong> obliga a reportar incidentes con datos personales ante la SIC. Todo esto deriva de los <strong>CONPES 3854 y 3995</strong>.</p>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     15 · CIERRE
+     ============================================================ -->
+<section class="slide theme-teal" data-notes="Cierre. Recapitular los tres bloques. Conectar con el marco colombiano (CONPES → Resolución 500 → MSPI) y con ISO 27001. Cerrar con la idea de reducir probabilidad e impacto.">
+  <svg class="chevrons-tr" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M10 10 L50 60 L10 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M35 10 L75 60 L35 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+    <path d="M60 10 L100 60 L60 110" fill="none" stroke="#EBA43C" stroke-width="9"/>
+  </svg>
+  <div class="anim" style="max-width:900px;margin:0 auto;text-align:center;padding-left:0">
+    <span class="kicker gold">Cierre</span>
+    <h1 style="font-size:3.2rem;margin-bottom:20px">La seguridad IP no depende <em style="color:var(--gold);font-style:italic">de una sola tecnología</em></h1>
+    <p style="font-size:1.02rem;line-height:1.7;color:var(--cream);max-width:800px;margin:0 auto">
+      IPsec, VPN y TLS protegen los datos en tránsito. La segmentación y Zero Trust limitan el alcance de una intrusión. El filtrado controla qué tráfico se permite. La defensa en profundidad suma capas. Y la gestión de riesgos —exigida por los CONPES, operacionalizada en la Resolución 500 y alineada con ISO 27001— hace que la seguridad sea un <strong>proceso continuo, no un producto</strong>.
+    </p>
+    <div style="margin-top:30px;padding:18px 26px;background:rgba(235,164,60,.15);border-radius:10px;border-left:4px solid var(--gold);max-width:720px;margin-left:auto;margin-right:auto">
+      <p style="font-family:var(--font-serif);font-size:1.1rem;font-style:italic;color:var(--gold);margin:0;line-height:1.5">
+        La meta no es una red invulnerable, sino reducir la probabilidad y el impacto.
+      </p>
+    </div>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     16 · GRACIAS
+     ============================================================ -->
+<section class="slide theme-teal" style="text-align:center" data-notes="Agradecer y abrir el espacio de preguntas. Recordar tiempos.">
+  <div class="anim end-content" style="padding-left:0">
+    <span class="kicker gold">Fin</span>
+    <h1 style="font-size:4.5rem;font-family:var(--font-serif);margin-bottom:14px">Gracias<br><em style="color:var(--gold);font-style:italic">-</em></h1>
+    <div style="width:80px;height:3px;background:var(--gold);margin:24px auto"></div>
+    <p style="color:var(--cream);font-size:.95rem;letter-spacing:.05em">
+      Seguridad IP · Protocolos, ataques y controles<br>
+      Universidad de La Guajira · 2026
+    </p>
+  </div>
+  <div class="brand-card">
+    <div class="brand-card__logo">
+      <span class="brand-card__mark t1">U</span>
+      <span class="brand-card__mark t2">G</span>
+      <span class="brand-card__mark t3">J</span>
+    </div>
+    <div class="brand-card__divider"></div>
+    <div class="brand-card__text">
+      Universidad de La Guajira
+      <small>Seguridad IP · 2026</small>
+    </div>
+  </div>
+</section>
+
+<script>
+/* =========================================================
+   SLIDER
+   ========================================================= */
+let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const counter = document.getElementById('slideCounter');
+const progress = document.getElementById('progressBar');
+const notesPanel = document.getElementById('notesPanel');
+const notesBody = document.getElementById('notesBody');
+
+function updateSlider(){
+  slides.forEach((slide,i) => {
+    slide.classList.toggle('active', i === currentSlide);
+  });
+  counter.textContent = `${String(currentSlide+1).padStart(2,'0')} / ${String(slides.length).padStart(2,'0')}`;
+  progress.style.width = `${((currentSlide+1)/slides.length)*100}%`;
+  const note = slides[currentSlide].getAttribute('data-notes') || '';
+  notesBody.textContent = note;
+}
+
+function nextSlide(){ if(currentSlide < slides.length-1){ currentSlide++; updateSlider(); } }
+function prevSlide(){ if(currentSlide > 0){ currentSlide--; updateSlider(); } }
+function goToSlide(n){ if(n>=0 && n<slides.length){ currentSlide = n; updateSlider(); } }
+
+document.querySelectorAll('[data-goto]').forEach(el => {
+  el.addEventListener('click', () => {
+    const target = parseInt(el.getAttribute('data-goto'), 10);
+    goToSlide(target);
+  });
+});
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ e.preventDefault(); nextSlide(); }
+  if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); prevSlide(); }
+  if(e.key === 'Home'){ e.preventDefault(); goToSlide(0); }
+  if(e.key === 'End'){ e.preventDefault(); goToSlide(slides.length-1); }
+  if(e.key === 'n' || e.key === 'N'){ e.preventDefault(); notesPanel.classList.toggle('open'); }
+  if(e.key === 'i' || e.key === 'I'){ e.preventDefault(); goToSlide(1); }
+  if(e.key === 'f' || e.key === 'F'){ e.preventDefault(); toggleFullScreen(); }
+  if(e.key === 'Escape'){ notesPanel.classList.remove('open'); }
+});
+
+function toggleFullScreen(){
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else if(document.exitFullscreen) document.exitFullscreen();
+}
+
+document.getElementById('notesToggle').addEventListener('click', () => notesPanel.classList.toggle('open'));
+document.getElementById('notesClose').addEventListener('click', () => notesPanel.classList.remove('open'));
+
+const hash = window.location.hash.match(/#\/(\d+)/);
+if(hash){
+  const n = parseInt(hash[1],10) - 1;
+  if(n>0 && n<slides.length) currentSlide = n;
+}
+
+updateSlider();
+
+/* SIMULADOR 1 · IPsec */
+let ipsecEncrypted = false;
+function toggleIPsecEncapsulation(){
+  const display = document.getElementById('packetDisplay');
+  const status = document.getElementById('ipsecStatus');
+  const btn = document.getElementById('ipsecBtnText');
+  ipsecEncrypted = !ipsecEncrypted;
+  if(ipsecEncrypted){
+    display.innerHTML = `
+      <div style="background:var(--teal);color:#fff;padding:20px 10px;border-radius:6px;font-family:monospace;font-size:11px;text-align:center">Nuevo IP</div>
+      <div style="background:var(--gold);color:#0F2A2E;padding:20px 10px;border-radius:6px;font-family:monospace;font-size:11px;text-align:center;font-weight:bold">ESP Header</div>
+      <div style="background:#0A2528;border:1px solid var(--teal);color:var(--teal);padding:20px 10px;border-radius:6px;font-family:monospace;font-size:11px;text-align:center;flex:2">🔒 Datos Cifrados (AES)</div>
+      <div style="background:var(--gold);color:#0F2A2E;padding:20px 10px;border-radius:6px;font-family:monospace;font-size:11px;text-align:center;font-weight:bold">ESP Auth</div>`;
+    status.textContent = "Estado: Modo Túnel IPsec activo (Confidencialidad + Integridad)";
+    status.style.color = "#4ade80";
+    btn.textContent = "Quitar Protección IPsec";
+  } else {
+    display.innerHTML = `
+      <div style="background:#333;padding:20px 15px;border-radius:6px;font-family:monospace;font-size:12px;text-align:center;flex:1;color:#fff">Cabecera IP Original</div>
+      <div style="background:#444;padding:20px 15px;border-radius:6px;font-family:monospace;font-size:12px;text-align:center;flex:2;color:#fff">Datos (Texto Plano)</div>`;
+    status.textContent = "Estado: Paquete sin cifrar (Vulnerable)";
+    status.style.color = "var(--gold)";
+    btn.textContent = "Aplicar Protección IPsec (ESP)";
+  }
+}
+
+/* SIMULADOR 2 · Sniffer */
+let isEncryptedSniffer = false;
+const packet = document.getElementById('sniffPacket');
+const snifferOutput = document.getElementById('snifferOutput');
+let packetPos = 0;
+setInterval(() => {
+  if(currentSlide !== 7) return;
+  packetPos += 2;
+  if(packetPos > 260) packetPos = 0;
+  packet.style.left = packetPos + 'px';
+}, 30);
+
+function toggleEncryptionSniffer(){
+  isEncryptedSniffer = !isEncryptedSniffer;
+  const btn = document.getElementById('snifferBtnText');
+  if(isEncryptedSniffer){
+    packet.textContent = "payload: 🔒 8f9a2e4b...";
+    packet.style.background = "var(--teal)";
+    snifferOutput.textContent = 'Atacante captura: "🔒 8f9a2e4b11c" (Incomprensible / Cifrado TLS) ✅';
+    snifferOutput.style.color = "#4ade80";
+    btn.textContent = "Desactivar Cifrado (Texto Plano)";
+  } else {
+    packet.textContent = "payload: admin:1234";
+    packet.style.background = "var(--coral)";
+    snifferOutput.textContent = 'Atacante captura: "user=admin&pass=1234" 🚨';
+    snifferOutput.style.color = "var(--coral)";
+    btn.textContent = "Activar Cifrado TLS/HTTPS";
+  }
+}
+
+/* SIMULADOR 3 · DDoS */
+const ddosRange = document.getElementById('ddosRange');
+const ddosServer = document.getElementById('ddosServer');
+const ddosStatus = document.getElementById('ddosStatus');
+ddosRange.addEventListener('input', e => {
+  const val = parseInt(e.target.value);
+  if(val < 50){
+    ddosServer.style.background = "var(--teal)";
+    ddosServer.style.transform = "scale(1)";
+    ddosStatus.textContent = `Carga Servidor: ${val}% (Operativo)`;
+    ddosStatus.style.color = "#4ade80";
+  } else if(val < 80){
+    ddosServer.style.background = "var(--gold)";
+    ddosServer.style.transform = "scale(1.1)";
+    ddosStatus.textContent = `Carga Servidor: ${val}% (Alerta de ancho de banda)`;
+    ddosStatus.style.color = "var(--gold)";
+  } else {
+    ddosServer.style.background = "var(--coral)";
+    ddosServer.style.transform = "scale(1.2) rotate(3deg)";
+    ddosStatus.textContent = `Carga Servidor: ${val}% ¡COLAPSO / DENEGACIÓN DE SERVICIO! 🚨`;
+    ddosStatus.style.color = "var(--coral)";
+  }
+});
+
+/* SIMULADOR 4 · Infección lateral */
+function simulateInfection(){
+  const guest = document.getElementById('zoneGuest');
+  const status = document.getElementById('infectionStatus');
+  guest.style.border = "2px solid var(--coral)";
+  guest.style.background = "rgba(239,91,91,.2)";
+  guest.innerHTML = `<span style="font-size:11px;color:var(--coral);letter-spacing:.08em;text-transform:uppercase">Zona Invitados</span><br><span style="font-size:24px;display:block;margin-top:6px">🦠</span><span style="font-size:11px">Laptop infectada</span>`;
+  status.textContent = "Malware intentando saltar a Servidores... 🛑 ¡BLOQUEADO POR FIREWALL!";
+  status.style.color = "var(--gold)";
+}
+
+/* Swipe móvil */
+let tx = 0;
+document.addEventListener('touchstart', e => tx = e.changedTouches[0].screenX, {passive:true});
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].screenX - tx;
+  if(Math.abs(dx) > 60){ dx < 0 ? nextSlide() : prevSlide(); }
+}, {passive:true});
+
+/* Reemplaza los círculos UGJ por el logo real */
+document.querySelectorAll('.brand-card__logo').forEach(el => {
+  el.innerHTML = '<img src="logo-uniguajira.png" alt="Uniguajira" class="brand-logo-img">';
+});
+
+</script>
+</body>
+</html>
